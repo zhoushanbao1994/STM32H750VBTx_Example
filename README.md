@@ -1,5 +1,5 @@
 ---
-
+typora-root-url: ./
 ---
 
 # STM32H750VBTx_Example
@@ -71,11 +71,30 @@ MDK软件支持包
 
 [https://keilpack.azureedge.net/pack/Keil.STM32H7xx_DFP.2.7.0.pack](https://keilpack.azureedge.net/pack/Keil.STM32H7xx_DFP.2.7.0.pack)
 
-![image-20210116000456670](.\Image\image-20210116000456670.png)
+![image-20210116000456670](./Image/image-20210116000456670.png)
 
 # 二、例子
 
-## 1. IO输出
+## 1. 时钟配置
+
+STM32Cube 是一个全面的软件平台，包括了ST产品的每个系列。平台包括了STM32Cube 硬件抽象层(一个STM32抽象层嵌入式软件，确保在STM32系列最大化的便携性)和一套的中间件组件(RTOS, USB, FatFs, TCP/IP, Graphics, 等等).
+
+- 直观的STM32微控制器的选择和时钟树配置
+- 微控制器图形化配置外围设备和中间件的功能模式和初始化参数
+- C代码生成项目覆盖STM32微控制器的初始化符合IAR™，Keil的™和GCC编译器。
+
+
+
+对于新的产品设计，我们强烈推荐使用STM32Cube来加速你的开发过程，并为以后的产品平台移植打下良好的基础。
+
+### 1.新建工程
+打开STM32cubeMX软件，点击“File”->“New Project”。选择对应MCU（STM32H750VBTx）。点击“Start Project”
+
+![image-20210116024259110](/Image/image-20210116024259110.png)
+
+
+
+## 2. IO输出
 
 ## 2. IO输入-轮询模式
 
