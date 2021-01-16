@@ -490,18 +490,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
   */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  if(GPIO_Pin == FORNT_INPUT_5_Pin) {
-    printf("FORNT_INPUT_5_Pin\r\n");
-  } 
-  else if(GPIO_Pin == FORNT_INPUT_6_Pin) {
-    printf("FORNT_INPUT_6_Pin\r\n");
-  } 
-  else if(GPIO_Pin == FORNT_INPUT_7_Pin) {
-    printf("FORNT_INPUT_7_Pin\r\n");
-  } 
-  else if(GPIO_Pin == FORNT_INPUT_8_Pin) {
-    printf("FORNT_INPUT_8_Pin\r\n");
-  } 
+  if(GPIO_Pin == InPut3_Pin) {
+    printf("FORNT_INPUT_3_Pin\r\n");
+  }  
 }
 /* USER CODE END 2 */
 ```
@@ -511,6 +502,91 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 
 ## 6. 定时器
+
+### a. 时钟
+
+根据之前的时钟配置：定时器的时钟频率为200Mhz
+
+![image-20210117000534250](/Image/image-20210117000534250.png)
+
+### b. 定时器Mode配置
+
+![image-20210117000905341](/Image/image-20210117000905341.png)
+
+- **Slave Mode:**主从模式，一般用不到，默认即可。
+- **Trigger Source:**一般用不到，默认即可。
+- **Clock Source:**时钟来源，选择“Internal Clock”(内部时钟)
+  - 选项 ：Internal Clock 内部时钟
+  - 选项 ： ETR2 外部触发输入(ETR)(****仅适用****TIM2,3,4)
+- 其余项：默认设置即可
+
+### c. 定时器Configuration配置
+
+![image-20210117002127384](/Image/image-20210117002127384.png)
+
+- **Prtscaler (定时器分频系数) :** 2000-1
+- **Counter Mode(计数模式)：**Up(向上计数模式)      
+- **Counter Period(自动重装载值) :  **100000-1   
+- **CKD(时钟分频因子) ：** No Division 不分频
+  - 选项： 可以选择二分频和四分频             
+- **auto-reload-preload(自动重装载) :**  Enable 使能
+- **TRGO Parameters**  触发输出 (TRGO)        不使能  
+- TRGO：  定时器的触发信号输出 在定时器的定时时间到达的时候输出一个信号(如：定时器更新产生TRGO信号来触发ADC的同步转换，) 
+
+$T_{out} = 1 / \frac{T_{clk}}{(psc+1)} * (arr + 1) = (arr + 1)*(psc+1)/T_{clk}$
+
+arr=100000-1  psc=2000-1 Tclk=200Mhz    Tout = (100000*2000)/200MHz = 1000000us = 1s
+
+### d. 开启中断
+
+![image-20210117005318609](/Image/image-20210117005318609.png)
+
+### e. 生成工程
+
+GENERATE CODE
+
+### f. 修改代码
+
+关闭main.c主循环中对RUN_LED的控制
+
+time增加代码
+
+```c
+/* time.h */
+/* USER CODE BEGIN Includes */
+#include "gpio.h"
+/* USER CODE END Includes */
+/* USER CODE BEGIN Prototypes */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
+/* USER CODE END Prototypes */
+
+/* timer.c */
+/* USER CODE BEGIN 1 */
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @param  htim: TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance == htim2.Instance) {
+    printf("Timer2\r\n");
+    HAL_GPIO_TogglePin(RUN_LED_GPIO_Port, RUN_LED_Pin);		//toggle the pin
+  }
+}
+/* USER CODE END 1 */
+```
+
+main.c增加代码
+
+```c
+  /* USER CODE BEGIN 2 */
+  /* Start the Timer2 */
+  HAL_TIM_Base_Start_IT(&htim2);
+  /* USER CODE END 2 */
+```
+
+### g. 下载运行
 
 
 
