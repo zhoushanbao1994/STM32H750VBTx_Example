@@ -592,3 +592,40 @@ main.c增加代码
 
 ## 7. 独立看门狗
 
+### a. 时钟
+
+IWDG时钟为32KHz
+
+![image-20210117013021563](/Image/image-20210117013021563.png)
+
+### b. 配置IWDG1
+
+![image-20210117013255495](/Image/image-20210117013255495.png)
+
+- IWDG的时钟为32kHz,此时设置计数器时钟为32分频，则分频后的时钟频率为1KHz。
+- IWDG窗口值（windows value）为默认不修改。当计数器的值大于窗口值时，如果执行重载操作，则会产生复位。
+- 递减基础器重载值（down-counter reload value）配置为1000，即1000ms不刷新IWDG系统复位。
+
+### c. 生成工程
+
+GENERATE CODE
+
+### d. 修改代码
+
+main.c 主循环，增加每隔500ms，喂狗。
+
+```c
+/* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    HAL_IWDG_Refresh(&hiwdg1);
+    HAL_Delay(500);
+    /* USER CODE END WHILE */
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
+```
+
+### f. 下载运行
+
