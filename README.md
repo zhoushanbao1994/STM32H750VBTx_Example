@@ -199,11 +199,211 @@ AHB、APB1、APB2、APB3 和 APB 总线时钟以及 Systick 时钟的最终来�
 
 编译工程，选择下载器，下载程序运行。RUN_LED闪烁。
 
-## 3. IO输入-轮询模式
+## 3. 串口
 
-## 4. IO输入-中断模式
+### 1. 配置串口1，异步通讯模式，使用PA9、PA10管脚。
 
-## 5. 串口
+![image-20210116171812807](/Image/image-20210116171812807.png)
+
+- 点击USATR1  
+- 设置MODE为**Asynchronous(异步通信)**
+- GPIO引脚设置 PA10->USART1_RX、PA9->USART_TX
+
+### 2. 配置串口参数
+
+波特率为115200 Bits/s。传输数据长度为8 Bit。奇偶检验无。停止位1。其余默认即可。
+
+![image-20210116172604222](/Image/image-20210116172604222.png)
+
+### 3. NVIC Settings(中断配置)
+
+使能接收中断(中断优先级默认即可)
+
+![image-20210116172832855](/Image/image-20210116172832855.png)
+
+### 4. 生成工程
+
+![image-20210116173816719](/Image/image-20210116173816719.png)
+
+### 5. 包含头文件
+
+uart.h文件中，在 / * USER CODE BEGIN Includes * /  / * USER CODE END Includes * / 添加如下内容
+
+```c
+/* USER CODE BEGIN Includes */
+#include <stdio.h>
+/* USER CODE END Includes */
+```
+
+### 6. 映射printf函数
+
+在uart.c的 / * USER CODE BEGIN 0 * /  / * USER CODE END 0 * / 中间，添加如下内容
+
+```c
+/* USER CODE BEGIN 0 */
+//加入以下代码,支持printf函数,而不需要选择use MicroLIB	  
+#if 1
+#pragma import(__use_no_semihosting)  
+//解决HAL库使用时,某些情况可能报错的bug
+int _ttywrch(int ch)    
+{
+    ch=ch;
+	return ch;
+}
+
+//标准库需要的支持函数                 
+struct __FILE 
+{ 
+	int handle; 
+	/* Whatever you require here. If the only file you are using is */ 
+	/* standard output using printf() for debugging, no file handling */ 
+	/* is required. */ 
+};
+
+/* FILE is typedef’ d in stdio.h. */ 
+FILE __stdout; 
+
+//定义_sys_exit()以避免使用半主机模式    
+void _sys_exit(int x) 
+{ 
+	x = x; 
+} 
+//重定义fputc函数 
+int fputc(int ch, FILE *f)
+{      
+	while((USART1->ISR&0X40)==0);//循环发送,直到发送完毕   
+	USART1->TDR = (uint8_t) ch;      
+	return ch;
+}
+#endif 
+/* USER CODE END 0 */
+```
+
+### 6. 输出测试
+
+在main.c中主循环中添加printf输出
+
+![image-20210116180613125](/Image/image-20210116180613125.png)
+
+
+
+### 7. 配置串口中断接收
+
+i. 定义串口接收Buf
+
+```c
+/* uart.h */
+/* USER CODE BEGIN Private defines */
+#define USART_RX_BUFFER_SIZE              (1)        	// 缓存接收多少数据产生一次中断
+extern uint8_t g_UartRxBuffer [USART_RX_BUFFER_SIZE];	// 串口接收缓冲
+/* USER CODE END Private defines */
+
+/* uart.c */
+/* USER CODE BEGIN 0 */
+uint8_t g_UartRxBuffer [USART_RX_BUFFER_SIZE];			// 串口接收缓冲
+/* USER CODE END 0 */
+```
+
+
+
+ii. 修改中断服务程序，stm32h7xx_it.c->void USART1_IRQHandler(void)
+
+```c
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "usart.h"
+/* USER CODE END Includes */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+#define USART_MAX_DELAY  (0x1FFFF)  // 串口处理的最大超时
+/* USER CODE END PD */
+
+
+/**
+  * @brief This function handles USART1 global interrupt.
+  */
+void USART1_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART1_IRQn 0 */
+  // 前面板-调试串口
+  uint32_t timeout = 0;
+  /* USER CODE END USART1_IRQn 0 */
+  HAL_UART_IRQHandler(&huart1);
+  /* USER CODE BEGIN USART1_IRQn 1 */
+  timeout = 0;
+  while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY) { //等待就绪
+    timeout++;        //超时处理
+    if(timeout > USART_MAX_DELAY) {
+      break;
+    }      
+  }
+     
+  timeout = 0;
+  //一次处理完成之后，重新开启中断并设置RxXferCount大小
+  while(HAL_UART_Receive_IT(&huart1, (uint8_t *)g_UartRxBuffer, FORNT_DEBUG_USART1_RX_BUFFER_SIZE) != HAL_OK) {
+    timeout++; //超时处理
+    if(timeout > USART_MAX_DELAY) {
+      break;
+    }      
+  }
+  /* USER CODE END USART1_IRQn 1 */
+}
+```
+
+
+
+iii. 添加串口接收中断回调函数
+
+uart.c的 / * USER CODE BEGIN 1 * /  / * USER CODE END 1 * /之间，添加代码。
+
+```c
+/* USER CODE BEGIN 1 */
+/**
+  * @brief Rx Transfer completed callbacks
+  * @param huart: uart handle
+  * @retval None
+  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+  
+  /* NOTE : This function should not be modified, when the callback is needed,
+            the HAL_UART_RxCpltCallback can be implemented in the user file
+  */
+
+  if(huart->Instance==USART1) {    //调试串口1
+    // 收到数据后再发送回去
+    HAL_UART_Transmit(&huart1, (uint8_t *)g_UartRxBuffer, sizeof(g_UartRxBuffer), 0xFFFF);
+  }
+}
+/* USER CODE END 1 */
+```
+
+iv. 初始开启中断
+
+main.c
+
+```c
+  /* USER CODE BEGIN 2 */
+  printf("\r\n-----------------------------------------\r\n");
+  printf("-------- MCUB STM32H750VBTx Init --------\r\n");
+  printf("-----------------------------------------\r\n");
+
+  HAL_UART_Receive_IT(&huart1, (uint8_t *)g_UartRxBuffer, sizeof(g_UartRxBuffer));
+  /* USER CODE END 2 */
+```
+
+v. 中断接收配置完成
+
+
+
+## 4. IO输入-轮询模式
+
+配置PC0为输入模式
+
+## 5. IO输入-中断模式
 
 ## 6. 定时器
 
