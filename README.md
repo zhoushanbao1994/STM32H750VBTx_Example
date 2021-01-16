@@ -87,14 +87,14 @@ STM32Cube 是一个全面的软件平台，包括了ST产品的每个系列。�
 
 对于新的产品设计，我们强烈推荐使用STM32Cube来加速你的开发过程，并为以后的产品平台移植打下良好的基础。
 
-### 1.新建工程
+### a.新建工程
 打开STM32cubeMX软件，点击“File”->“New Project”。选择对应MCU（STM32H750VBTx）。点击“Start Project”
 
 ![image-20210116024259110](/Image/image-20210116024259110.png)
 
 ![image-20210116024610995](/Image/image-20210116024610995.png)
 
-### 2. RCC设置
+### b. RCC设置
 ​	“Categories”->“System Core”->“RCC”
 ​	HSE(外部高速时钟)选为Crystal/Ceramic Resonator(晶振/陶瓷谐振器)
 ​	LSE(外部低速时钟)选为Crystal/Ceramic Resonator(晶振/陶瓷谐振器)
@@ -112,7 +112,7 @@ STM32Cube 是一个全面的软件平台，包括了ST产品的每个系列。�
 
 
 
-### 3. 时钟配置
+### c. 时钟配置
 
 点击“Clock Configuration”，进入时钟配置界面。
 
@@ -143,7 +143,7 @@ AHB、APB1、APB2、APB3 和 APB 总线时钟以及 Systick 时钟的最终来�
 注意！ systick 固定为 400MHz，配置完成之后，那么 HCLK=200MHZ， Systic=400MHz， PCLK1=100MHz， PCLK2=100MHz， PCLK3=100Mhz, PCLK4=100MHz。
 ```
 
-### 4. Cortex-M7 内核基本配置  
+### d. Cortex-M7 内核基本配置  
 
 第一个配置栏目 Cortex Interface Settings 下面有两个配置项：
 	1) CPU ICache：使能 I-Cache。
@@ -152,13 +152,13 @@ AHB、APB1、APB2、APB3 和 APB 总线时钟以及 Systick 时钟的最终来�
 
 ![image-20210116033701712](/Image/image-20210116033701712.png)
 
-### 5. 外设初始化为独立文件
+### e. 外设初始化为独立文件
 
 “Proje Manager” -> “Generated files” -> “勾选Generated periphera initialization as a pair of '.c/.h' files per IP”。外设初始化为独立的C文件和头文件。
 
 ![image-20210116032902937](/Image/image-20210116032902937.png)
 
-### 6. 配置生成的工程类型
+### f. 配置生成的工程类型
 
 ![image-20210116033256832](/Image/image-20210116033256832.png)
 
@@ -168,7 +168,7 @@ AHB、APB1、APB2、APB3 和 APB 总线时钟以及 Systick 时钟的最终来�
 
 ## 2. IO输出
 
-配置PA15闪烁
+### a. 配置PA15
 
 “Pinout & Configuration” -> “Categories” -> “System Core” -> “GPIO”，输入管脚号，找到管脚所在的位置
 
@@ -178,13 +178,19 @@ AHB、APB1、APB2、APB3 和 APB 总线时钟以及 Systick 时钟的最终来�
 
 ![image-20210116032545282](/Image/image-20210116032545282.png)
 
+### b. IO详细配置
+
 进入 IO 口详细配置界面，界面会列出所有使用到的 IO 口的参数配置。选择PA15，就会在显示框下方显示对应的 IO 口详细配置信息，  
 
 ![image-20210116034903956](/Image/image-20210116034903956.png)
 
+### c. 生成工程代码
+
 在 STM32CubeMX 操作界面右上角，点击 CREATE CODE 即可生成源码 ，打开工程。
 
 ![image-20210116035226359](/Image/image-20210116035226359.png)
+
+### d. 修改代码 
 
 增加代码，使LED闪烁
 
@@ -197,11 +203,13 @@ AHB、APB1、APB2、APB3 和 APB 总线时钟以及 Systick 时钟的最终来�
     HAL_Delay(1000);
 ```
 
+### e. 编译运行
+
 编译工程，选择下载器，下载程序运行。RUN_LED闪烁。
 
 ## 3. 串口
 
-### 1. 配置串口1，异步通讯模式，使用PA9、PA10管脚。
+### a. 配置串口1，异步通讯模式，使用PA9、PA10管脚。
 
 ![image-20210116171812807](/Image/image-20210116171812807.png)
 
@@ -209,23 +217,23 @@ AHB、APB1、APB2、APB3 和 APB 总线时钟以及 Systick 时钟的最终来�
 - 设置MODE为**Asynchronous(异步通信)**
 - GPIO引脚设置 PA10->USART1_RX、PA9->USART_TX
 
-### 2. 配置串口参数
+### b. 配置串口参数
 
 波特率为115200 Bits/s。传输数据长度为8 Bit。奇偶检验无。停止位1。其余默认即可。
 
 ![image-20210116172604222](/Image/image-20210116172604222.png)
 
-### 3. NVIC Settings(中断配置)
+### c. NVIC Settings(中断配置)
 
 使能接收中断(中断优先级默认即可)
 
 ![image-20210116172832855](/Image/image-20210116172832855.png)
 
-### 4. 生成工程
+### d. 生成工程
 
 ![image-20210116173816719](/Image/image-20210116173816719.png)
 
-### 5. 包含头文件
+### e. 包含头文件
 
 uart.h文件中，在 / * USER CODE BEGIN Includes * /  / * USER CODE END Includes * / 添加如下内容
 
@@ -235,7 +243,7 @@ uart.h文件中，在 / * USER CODE BEGIN Includes * /  / * USER CODE END Includ
 /* USER CODE END Includes */
 ```
 
-### 6. 映射printf函数
+### f. 映射printf函数
 
 在uart.c的 / * USER CODE BEGIN 0 * /  / * USER CODE END 0 * / 中间，添加如下内容
 
@@ -279,7 +287,7 @@ int fputc(int ch, FILE *f)
 /* USER CODE END 0 */
 ```
 
-### 6. 输出测试
+### g. 输出测试
 
 在main.c中主循环中添加printf输出
 
@@ -287,7 +295,7 @@ int fputc(int ch, FILE *f)
 
 
 
-### 7. 配置串口中断接收
+### h. 配置串口中断接收
 
 i. 定义串口接收Buf
 
