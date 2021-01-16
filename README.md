@@ -439,7 +439,80 @@ printf("IN = %d\r\n", HAL_GPIO_ReadPin(InPut_GPIO_Port, InPut_Pin));
 
 ## 5. IO输入-中断模式
 
+### a. 配置PA3为“GPIO_EXIT3”
+
+![image-20210116225511111](/Image/image-20210116225511111.png)
+
+### b. IO详细配置
+
+![image-20210116225849560](/Image/image-20210116225849560.png)
+
+
+GPIO mode
+
+
+| External Interrupt Made with Rising edge trigger detection | 具有上升沿触发检测的外部中断模式|
+| ---- | ---- |
+| External Interrupt Mode with Falling edge trigger detection | 具有下降沿触发检测的外部中断模式|
+| External Interrupt Mode with Rising/Falling edge trigger detection | 具有上升/下降沿触发检测的外部中断模式 |
+| External Event Mode with Rising edge trigger detection | 具有上升沿触发检测的外部事件模式 |
+| External Event Mode with Falling edge trigger detection | 具有下降沿触发检测的外部事件模式 |
+| External Event Mode with Rising/Falling edge trigger detection | 具有上升/下降沿触发检测的外部事件模式 |
+
+### c. 开启中断
+
+![image-20210116231249529](/Image/image-20210116231249529.png)
+
+### d. 生成工程
+
+GENERATE CODE
+
+### e. 修改代码
+
+增加GPIO外部中断回调函数
+
+```c
+/* gpio.h */
+/* USER CODE BEGIN Includes */
+#include <stdio.h>
+/* USER CODE END Includes */
+/* USER CODE BEGIN Prototypes */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
+/* USER CODE END Prototypes */
+
+
+/* gpio.c */
+/* USER CODE BEGIN 2 */
+/**
+  * @brief EXTI line detection callbacks
+  * @param GPIO_Pin: Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if(GPIO_Pin == FORNT_INPUT_5_Pin) {
+    printf("FORNT_INPUT_5_Pin\r\n");
+  } 
+  else if(GPIO_Pin == FORNT_INPUT_6_Pin) {
+    printf("FORNT_INPUT_6_Pin\r\n");
+  } 
+  else if(GPIO_Pin == FORNT_INPUT_7_Pin) {
+    printf("FORNT_INPUT_7_Pin\r\n");
+  } 
+  else if(GPIO_Pin == FORNT_INPUT_8_Pin) {
+    printf("FORNT_INPUT_8_Pin\r\n");
+  } 
+}
+/* USER CODE END 2 */
+```
+
+### f. 下载运行
+
+
+
 ## 6. 定时器
+
+
 
 ## 7. 独立看门狗
 
