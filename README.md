@@ -411,7 +411,31 @@ v. 中断接收配置完成
 
 ## 4. IO输入-轮询模式
 
-配置PC0为输入模式
+### a. 配置PC0为GPIO_Input(输入模式)
+
+![image-20210116214554290](/Image/image-20210116214554290.png)
+
+### b. IO详细配置
+
+![image-20210116214942135](/Image/image-20210116214942135.png)
+
+### c. 生成工程 
+
+GENERATE CODE
+
+### d. 修改代码
+
+main.c 主循环 添加代码，轮询读取IO状态
+
+```c
+printf("IN = %d\r\n", HAL_GPIO_ReadPin(InPut_GPIO_Port, InPut_Pin));
+```
+
+![image-20210116221127584](/Image/image-20210116221127584.png)
+
+### e. 下载运行
+
+
 
 ## 5. IO输入-中断模式
 
