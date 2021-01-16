@@ -629,3 +629,155 @@ main.c 主循环，增加每隔500ms，喂狗。
 
 ### f. 下载运行
 
+
+
+## 7. CAN
+
+传统CAN模式
+
+### a. 使能CAN1
+
+![image-20210117021814545](/Image/image-20210117021814545.png)
+
+### b. 配置GPIO
+
+- PB8->FDCAN1_RX
+- PB9->FDCAN1_TX
+
+![image-20210117030431103](/Image/image-20210117030431103.png)
+
+### c.时钟
+
+![image-20210117021932437](/Image/image-20210117021932437.png)
+
+![image-20210117022022881](/Image/image-20210117022022881.png)
+
+CAN时钟为20MHz
+
+### d. Can配置
+
+![image-20210117022404647](/Image/image-20210117022404647.png)
+
+- Frame Format：
+
+  - Classic mode	传统CAN模式
+  - FD mode with BitRate Switching
+  - FD mode without BitRate Switching
+
+- Mode
+
+  - Normal mode 正常模式：正常收发
+  - Bus Monitoring mode 总线监控模式：只收不发，监控总线报文
+  - Internal LoopBack mode 内部回环测试：一般是验证下节点的收发是否有问题
+  - External LoopBack mode 外部回环测试
+  
+- Auto Retranmission 自动重传，当总线出现仲裁发送失败时候，在空闲时会自动重传上一帧报文
+
+- Transmit pause 发送暂停，这个配置对于一些特殊处理比较有用，在指定的时候暂停发送，这里初始化并不需要暂停发送
+
+- Protocol Exception 协议异常处理功能，这个功能的意思是使能该协议异常处理时，在接收帧数据过程中检测到隐性的保留位时， 该功能将使操作状态转变为 IDLE 并在下一个采样点中止当前帧。反之禁用此功能的话，隐性的保留位将被视为格式错误，并当做错误帧来进行处理，也可以使能相关中断自己处理。
+
+- Nominal Prescaler = 1；Nominal Sync Jump Width = 8；Nominal Time Seg1 = 31；Nominal Time Seg2 = 8；
+
+  波特率Baud = (fdcan_sclk / (seg1 + seg2 + 1)) * prescaler；即波特率为500K
+
+- Rx Fifo0 Elmts Nbr = 1
+
+- Tx Fifo Queue Elmts Nbr = 1
+
+- 其余默认
+
+### e. 开启中断
+
+选择“FDCAN1 interrupt 0”
+
+![image-20210117024300645](/Image/image-20210117024300645.png)
+
+### f. 生成工程
+
+GENERATE CODE
+
+### g. 修改代码
+
+fdcan
+
+```c
+/* fdcan.h */
+/* USER CODE BEGIN Includes */
+#include <stdio.h>
+/* USER CODE END Includes */
+/* USER CODE BEGIN Prototypes */
+uint8_t FDCAN1_Send_Msg(uint8_t* msg, uint32_t len);
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs);
+/* USER CODE END Prototypes */
+
+/* fdcan.c */
+/* USER CODE BEGIN 1 */
+//can发送一组数据(固定格式:ID为0X12,标准帧,数据帧)	
+//len:数据长度(最大为8),可设置为FDCAN_DLC_BYTES_2~FDCAN_DLC_BYTES_8				     
+//msg:数据指针,最大为8个字节.
+//返回值:0,成功;
+//		 其他,失败;
+uint8_t FDCAN1_Send_Msg(uint8_t* msg, uint32_t len)
+{	
+    FDCAN_TxHeaderTypeDef FDCAN1_TxHeader;
+    FDCAN1_TxHeader.Identifier=0x12;                           //32位ID
+    FDCAN1_TxHeader.IdType=FDCAN_STANDARD_ID;                  //标准ID
+    FDCAN1_TxHeader.TxFrameType=FDCAN_DATA_FRAME;              //数据帧
+    FDCAN1_TxHeader.DataLength=len;                            //数据长度
+    FDCAN1_TxHeader.ErrorStateIndicator=FDCAN_ESI_ACTIVE;            
+    FDCAN1_TxHeader.BitRateSwitch=FDCAN_BRS_OFF;               //关闭速率切换
+    FDCAN1_TxHeader.FDFormat=FDCAN_CLASSIC_CAN;                //传统的CAN模式
+    FDCAN1_TxHeader.TxEventFifoControl=FDCAN_NO_TX_EVENTS;     //无发送事件
+    FDCAN1_TxHeader.MessageMarker=0;                           
+    
+    if(HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1,&FDCAN1_TxHeader,msg)!=HAL_OK) return 1;//发送
+    return 0;	
+}
+
+//FIFO0回调函数
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+{
+    FDCAN_RxHeaderTypeDef FDCAN1_RxHeader;
+    uint8_t i=0;
+    uint8_t rxdata[8];
+    if((RxFifo0ITs&FDCAN_IT_RX_FIFO0_NEW_MESSAGE)!=RESET)   //FIFO1新数据中断
+    {
+        //提取FIFO0中接收到的数据
+        HAL_FDCAN_GetRxMessage(hfdcan,FDCAN_RX_FIFO0,&FDCAN1_RxHeader,rxdata);
+        printf("id:%#x\r\n",FDCAN1_RxHeader.Identifier);
+        printf("len:%d\r\n",FDCAN1_RxHeader.DataLength>>16);
+        for(i=0;i<8;i++)
+          printf("rxdata[%d]:%d\r\n",i,rxdata[i]);
+        HAL_FDCAN_ActivateNotification(hfdcan,FDCAN_IT_RX_FIFO0_NEW_MESSAGE,0);
+    }
+}
+/* USER CODE END 1 */
+
+```
+
+main.c
+
+```c
+  /* USER CODE BEGIN 1 */
+  uint8_t canBuf[8] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+  /* USER CODE END 1 */
+
+  /* USER CODE BEGIN 2 */
+  /* Start the fdcan1 */
+  HAL_FDCAN_Start(&hfdcan1); 
+  HAL_FDCAN_ActivateNotification(&hfdcan1,FDCAN_IT_RX_FIFO0_NEW_MESSAGE,0);  
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    HAL_Delay(500);
+    FDCAN1_Send_Msg(canBuf, FDCAN_DLC_BYTES_8);
+    /* USER CODE END WHILE */
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
+```
+
