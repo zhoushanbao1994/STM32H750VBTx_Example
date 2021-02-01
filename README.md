@@ -633,7 +633,7 @@ main.c 主循环，增加每隔500ms，喂狗。
 
 
 
-## 7. CAN
+## 8. CAN
 
 传统CAN模式
 
@@ -783,3 +783,19 @@ main.c
   /* USER CODE END 3 */
 ```
 
+## 9. RTC
+
+### a. 时钟
+
+LSE(外部低速时钟)选为Crystal/Ceramic Resonator(晶振/陶瓷谐振器)
+
+RTC Clock Mux配置
+
+![image-20210125185623369](/Image/image-20210125185623369.png)
+
+### b. 配置RTC
+
+- Activate Clock Source  激活时钟源
+- Activate calendar  激活日历
+
+![image-20210125190336073](/Image/image-20210125190336073.png)
