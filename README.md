@@ -353,7 +353,7 @@ void USART1_IRQHandler(void)
      
   timeout = 0;
   //一次处理完成之后，重新开启中断并设置RxXferCount大小
-  while(HAL_UART_Receive_IT(&huart1, (uint8_t *)g_UartRxBuffer, FORNT_DEBUG_USART1_RX_BUFFER_SIZE) != HAL_OK) {
+  while(HAL_UART_Receive_IT(&huart1, (uint8_t *)g_UartRxBuffer, USART_RX_BUFFER_SIZE) != HAL_OK) {
     timeout++; //超时处理
     if(timeout > USART_MAX_DELAY) {
       break;
