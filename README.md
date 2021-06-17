@@ -535,7 +535,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 - **TRGO Parameters**  触发输出 (TRGO)        不使能  
 - TRGO：  定时器的触发信号输出 在定时器的定时时间到达的时候输出一个信号(如：定时器更新产生TRGO信号来触发ADC的同步转换，) 
 
-$T_{out} = 1 / \frac{T_{clk}}{(psc+1)} * (arr + 1) = (arr + 1)*(psc+1)/T_{clk}$
+$$
+T_{out} = 1 / \frac{T_{clk}}{(psc+1)} * (arr + 1) = (arr + 1)*(psc+1)/T_{clk}
+$$
 
 arr=100000-1  psc=2000-1 Tclk=200Mhz    Tout = (100000*2000)/200MHz = 1000000us = 1s
 
